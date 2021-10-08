@@ -11,5 +11,5 @@ START cmd /K dotnet run
 cd ..
 
 cd TicketSales.Core
-cd TicketSales.Core.Web
+cd TicketSales.Core.Tickets
 START cmd /K dotnet run

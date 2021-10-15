@@ -1,21 +1,29 @@
 ﻿using MassTransit;
+using Microsoft.Extensions.Configuration;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using TicketSales.Core.Application;
 
-namespace TicketSales.Core.Web
+namespace TicketSales.Core.Ticketsm
 {
     public class Program
     {
         public static async Task Main(string[] args)
         {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false);
+
+            IConfiguration config = builder.Build();
+
             var busControl = Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
-                cfg.Host(new Uri("rabbitmq://localhost"), hostConfigurator =>
+                cfg.Host(new Uri(config["MassTransit:RabbitMqUri"]), hostConfigurator =>
                 {
-                    hostConfigurator.Username("");
-                    hostConfigurator.Password("");
+                    hostConfigurator.Username(config["MassTransit:RabbitMqUser"]);
+                    hostConfigurator.Password(config["MassTransit:RabbitMqPassword"]);
                 });
 
                 cfg.ReceiveEndpoint("tickets", e =>

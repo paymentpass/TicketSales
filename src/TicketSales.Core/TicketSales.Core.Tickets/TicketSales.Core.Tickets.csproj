@@ -8,6 +8,9 @@
     <PackageReference Include="MassTransit" Version="7.2.2" />
     <PackageReference Include="MassTransit.Extensions.DependencyInjection" Version="7.2.2" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="7.2.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.20" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.20" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -19,6 +22,12 @@
     <ProjectReference Include="..\TicketSales.Core.Application\TicketSales.Core.Application.csproj" />
     <ProjectReference Include="..\TicketSales.Core.Domain\TicketSales.Core.Domain.csproj" />
     <ProjectReference Include="..\TicketSales.Messages\TicketSales.Messages.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

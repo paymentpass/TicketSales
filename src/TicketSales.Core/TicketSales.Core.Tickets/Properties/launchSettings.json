@@ -1,0 +1,9 @@
+﻿{
+  "profiles": {
+    "TicketSales.Core.Tickets": {
+      "commandName": "Project",
+      "environmentVariables": {
+      }
+    }
+  }
+}

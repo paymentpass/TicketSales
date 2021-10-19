@@ -3,13 +3,11 @@ using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TicketSales.Admin.Consumers;
 using TicketSales.Admin.Services;
-using TicketSales.Messages.Commands;
 
 namespace TicketSales.Admin
 {
@@ -38,31 +36,32 @@ namespace TicketSales.Admin
             {
                 x.AddConsumer<TestEventHandler>();
 
-                x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
+                x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg => 
                 {
-                    var host = cfg.Host("localhost", "tickets", h => { h.Username("guest"); h.Password("guest"); });
+                    cfg.Host(new Uri(Configuration["MassTransit:RabbitMqUri"]), hostConfigurator =>
+                    {
+                        hostConfigurator.Username(Configuration["MassTransit:RabbitMqUser"]);
+                        hostConfigurator.Password(Configuration["MassTransit:RabbitMqPassword"]);
+                    });
 
-                    cfg.ReceiveEndpoint(host, "admin", e =>
+                    cfg.ReceiveEndpoint("admin", e =>
                     {
                         e.PrefetchCount = 16;
 
                         e.ConfigureConsumer<TestEventHandler>(provider);
-
-                        EndpointConvention.Map<TestCommand>(new Uri("rabbitmq://localhost/tickets/core"));
                     });
-
-                    // or, configure the endpoints by convention
-                    cfg.ConfigureEndpoints(provider);
                 }));
+
+                EndpointConvention.Map<Messages.Commands.TestCommand>(new Uri($"{Configuration["MassTransit:RabbitMqUri"]}/tickets"));
             });
 
-            services.AddHostedService<BusService>();
+            services.AddMassTransitHostedService();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddControllersWithViews();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -70,20 +69,23 @@ namespace TicketSales.Admin
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler("/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseCookiePolicy();
 
-            app.UseMvc(routes =>
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
             });
         }
     }
